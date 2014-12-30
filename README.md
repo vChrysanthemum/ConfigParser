@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include "config.h"
-
-int main(int argc, char **argv) {
+{
     struct config *conf = init_config();
     struct config_option *opt;
     char tmp_value[1024] = "";
