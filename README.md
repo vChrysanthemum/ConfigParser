@@ -1,4 +1,4 @@
-{
+`````
     struct config *conf = init_config();
     struct config_option *opt;
     char tmp_value[1024] = "";
@@ -17,4 +17,4 @@
     release_config(&conf);
     
     return 0;
-}
+```
