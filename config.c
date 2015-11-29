@@ -4,7 +4,7 @@
 #include "config.h"
 
 static void skip_whitespaces(char **ptr)  {
-    while((' ' == **ptr || '\t' == **ptr || '\n' == **ptr) && 0x00 != **ptr) *ptr+=1;
+    while(0x00 != **ptr && (' ' == **ptr || '\t' == **ptr || '\n' == **ptr)) *ptr+=1;
 }
 
 static int parse_section(char *ptr) {
@@ -16,9 +16,9 @@ static int parse_section(char *ptr) {
     return n;
 }
 
-static int parse_option_key_n_skip(char **ptr) {
+static int parse_option_key_and_skip(char **ptr) {
     int n=0, is_equal_found=0;
-    while (' ' != **ptr && '\t' != **ptr && 0x00 != **ptr) {
+    while (' ' != **ptr && '\t' != **ptr && 0 != **ptr) {
         if ('=' == **ptr) {
             is_equal_found = 1;
             break;
@@ -32,37 +32,42 @@ static int parse_option_key_n_skip(char **ptr) {
 
     if(1 == is_equal_found) {
         (*ptr)++;
-    }
-    else {
-        while ('=' != **ptr && 0x00 != **ptr) {
+
+    } else {
+        while ('=' != **ptr && 0 != **ptr) {
             (*ptr)++;
         }
-        skip_whitespaces(ptr);
+        (*ptr)++;
     }
 
     return n;
+
 }
 
-static int parse_option_value(char *ptr) {
+static int parse_option_value_and_skip(char **ptr) {
     int n=0, whitespace_count=0;
+    char *_ptr;
     while (1) {
         whitespace_count = 0;
-
-        while(' ' == *ptr || '\t' == *ptr) {
+        _ptr = *ptr;
+        while(' ' == *_ptr || '\t' == *_ptr) {
             whitespace_count += 1;
-            ptr++;
+            _ptr = (*ptr) + whitespace_count;
         }
 
-        if ('\n' == *ptr) {
-            break;
+        if ('\n' == **ptr) {
+            return n;
         }
 
+        (*ptr) += whitespace_count;
         n += whitespace_count;
 
-        ptr++;
+        (*ptr)++;
         n++;
     }
+
     return n;
+
 }
 
 static int config_get_return_id(struct config *conf, char *section, char *option) {
@@ -147,13 +152,13 @@ void config_read(struct config *conf, char *path) {
         opt->section = section;
         opt->section_len = section_len;
 
+        skip_whitespaces(&ptr);
         opt->key = ptr;
-        opt->key_len = parse_option_key_n_skip(&ptr);
+        opt->key_len = parse_option_key_and_skip(&ptr);
 
+        skip_whitespaces(&ptr);
         opt->value = ptr;
-        opt->value_len = parse_option_value(ptr);
-
-        ptr += opt->value_len;
+        opt->value_len = parse_option_value_and_skip(&ptr);
 
         strncpy(tmp_section, section, section_len);
         tmp_section[section_len] = '\0';

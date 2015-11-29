@@ -5,18 +5,15 @@
 int main(int argc, char **argv) {
     struct config *conf = init_config();
     struct config_option *opt;
-    char tmp_value[1024] = "";
 
     config_read(conf, "./default.conf");
     config_read(conf, "./custom.conf");
 
     opt = config_get(conf, "dfs", "port");
-    strncpy(tmp_value, opt->value, opt->value_len);
-    printf("%s\n", tmp_value);
+    printf("dfs port: %.*s\n", opt->value_len, opt->value);
 
     opt = config_get(conf, "hive", "port");
-    strncpy(tmp_value, opt->value, opt->value_len);
-    printf("%s\n", tmp_value);
+    printf("hive port: %.*s\n", opt->value_len, opt->value);
 
     release_config(&conf);
     
